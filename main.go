@@ -10,9 +10,9 @@ import (
 )
 
 const (
+	appVersion      = "0.0.1"
 	defaultFileName = "health.log"
-
-	delimiter = '\t'
+	delimiter       = '\t'
 )
 
 func getFileName(fileName string) string {
@@ -28,7 +28,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "merki"
 	app.Usage = "Command line personal health tracker"
-
+	app.Version = appVersion
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:        "file, f",
@@ -121,6 +121,43 @@ func main() {
 				}
 				for name, _ := range measures {
 					println(name)
+				}
+			},
+		},
+		{
+			Name:    "filter",
+			Aliases: []string{"f"},
+			Usage:   "Filter records for single measurement",
+			Action: func(c *cli.Context) {
+				measure := c.Args().First()
+				w := csv.NewWriter(os.Stdout)
+				w.Comma = delimiter
+
+				parser := NewParser(string(delimiter))
+				go parser.ParseFile(getFileName(fileName))
+				err := func() error {
+					for {
+						select {
+						case record := <-parser.Record:
+							if record.Measurement == measure {
+								if err := w.Write(record.getStrings()); err != nil {
+									return err
+								}
+							}
+						case err := <-parser.Error:
+							return err
+						case <-parser.Done:
+							return nil
+						}
+					}
+				}()
+				if err != nil {
+					panic(err)
+				}
+
+				w.Flush()
+				if err := w.Error(); err != nil {
+					log.Fatal(err)
 				}
 			},
 		},
