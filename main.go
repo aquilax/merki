@@ -96,6 +96,34 @@ func main() {
 				println(sparkline)
 			},
 		},
+		{
+			Name:    "measurements",
+			Aliases: []string{"m"},
+			Usage:   "Return list of all used measurements",
+			Action: func(c *cli.Context) {
+				measures := make(map[string]bool)
+				parser := NewParser(string(delimiter))
+				go parser.ParseFile(getFileName(fileName))
+				err := func() error {
+					for {
+						select {
+						case record := <-parser.Record:
+							measures[record.Measurement] = true
+						case err := <-parser.Error:
+							return err
+						case <-parser.Done:
+							return nil
+						}
+					}
+				}()
+				if err != nil {
+					panic(err)
+				}
+				for name, _ := range measures {
+					println(name)
+				}
+			},
+		},
 	}
 
 	app.Run(os.Args)
