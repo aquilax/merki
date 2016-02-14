@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/codegangsta/cli"
+	"github.com/joliv/spark"
 )
 
 const (
@@ -41,7 +42,7 @@ func main() {
 		{
 			Name:    "add",
 			Aliases: []string{"a"},
-			Usage:   "add measurement to file",
+			Usage:   "Add measurement value to the file",
 			Action: func(c *cli.Context) {
 				record, err := NewRecordFromArgs(c.Args())
 				if err != nil {
@@ -63,6 +64,36 @@ func main() {
 				if err := w.Error(); err != nil {
 					log.Fatal(err)
 				}
+			},
+		},
+		{
+			Name:    "sparkline",
+			Aliases: []string{"spark"},
+			Usage:   "Draw sparkline graph for a measure",
+			Action: func(c *cli.Context) {
+				measure := c.Args().First()
+				var values []float64
+				parser := NewParser(string(delimiter))
+				go parser.ParseFile(getFileName(fileName))
+				err := func() error {
+					for {
+						select {
+						case record := <-parser.Record:
+							if record.Measurement == measure {
+								values = append(values, record.Value)
+							}
+						case err := <-parser.Error:
+							return err
+						case <-parser.Done:
+							return nil
+						}
+					}
+				}()
+				if err != nil {
+					panic(err)
+				}
+				sparkline := spark.Line(values)
+				println(sparkline)
 			},
 		},
 	}

@@ -21,6 +21,32 @@ type Record struct {
 	Description string
 }
 
+func getS(s []string, n int) string {
+	l := len(s)
+	if n < l {
+		return s[n]
+	}
+	return ""
+}
+
+func NewRecordFromStrings(s []string) (*Record, error) {
+	v, err := strconv.ParseFloat(getS(s, 2), 64)
+	if err != nil {
+		return nil, err
+	}
+	date, err := time.Parse(formatDate, getS(s, 0))
+	if err != nil {
+		return nil, err
+	}
+	return &Record{
+		date,
+		getS(s, 1),
+		v,
+		getS(s, 3),
+		getS(s, 4),
+	}, nil
+}
+
 func NewRecordFromArgs(args cli.Args) (*Record, error) {
 	measurement := args.First()
 	fValue, err := strconv.ParseFloat(args.Get(1), 64)
