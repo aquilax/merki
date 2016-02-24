@@ -128,6 +128,32 @@ func main() {
 			Name:    "filter",
 			Aliases: []string{"f"},
 			Usage:   "Filter records for single measurement",
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "hourly, r",
+					Usage: "Group values by hour",
+				},
+				cli.BoolFlag{
+					Name:  "daily, d",
+					Usage: "Group values by day",
+				},
+				cli.BoolFlag{
+					Name:  "weekly, w",
+					Usage: "Group values by week",
+				},
+				cli.BoolFlag{
+					Name:  "average, a",
+					Usage: "Average values in the group",
+				},
+				cli.BoolFlag{
+					Name:  "max, x",
+					Usage: "Max values in the group",
+				},
+				cli.BoolFlag{
+					Name:  "min, n",
+					Usage: "Min values in the group",
+				},
+			},
 			Action: func(c *cli.Context) {
 				measure := c.Args().First()
 				w := csv.NewWriter(os.Stdout)
