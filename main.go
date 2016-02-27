@@ -153,12 +153,37 @@ func main() {
 					Name:  "min, n",
 					Usage: "Min values in the group",
 				},
+				cli.BoolFlag{
+					Name:  "sum, s",
+					Usage: "Sum values in the group",
+				},
 			},
 			Action: func(c *cli.Context) {
 				measure := c.Args().First()
 				w := csv.NewWriter(os.Stdout)
 				w.Comma = delimiter
 				filter := NewFilter(w, measure)
+				if c.Bool("hourly") {
+					filter.gi = intervalHourly
+				}
+				if c.Bool("daily") {
+					filter.gi = intervalDaily
+				}
+				if c.Bool("weekly") {
+					filter.gi = intervalWeekly
+				}
+				if c.Bool("average") {
+					filter.gt = typeAverage
+				}
+				if c.Bool("max") {
+					filter.gt = typeMax
+				}
+				if c.Bool("min") {
+					filter.gt = typeMin
+				}
+				if c.Bool("sum") {
+					filter.gt = typeSum
+				}
 				parser := NewParser(string(delimiter))
 				go parser.ParseFile(getFileName(fileName))
 				err := func() error {
@@ -175,6 +200,11 @@ func main() {
 						}
 					}
 				}()
+				if err != nil {
+					panic(err)
+				}
+
+				err = filter.Print()
 				if err != nil {
 					panic(err)
 				}
