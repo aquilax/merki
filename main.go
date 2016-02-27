@@ -158,17 +158,15 @@ func main() {
 				measure := c.Args().First()
 				w := csv.NewWriter(os.Stdout)
 				w.Comma = delimiter
-
+				filter := NewFilter(w, measure)
 				parser := NewParser(string(delimiter))
 				go parser.ParseFile(getFileName(fileName))
 				err := func() error {
 					for {
 						select {
 						case record := <-parser.Record:
-							if record.Measurement == measure {
-								if err := w.Write(record.getStrings()); err != nil {
-									return err
-								}
+							if err := filter.Add(record); err != nil {
+								return err
 							}
 						case err := <-parser.Error:
 							return err
