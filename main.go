@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"log"
 	"os"
+	"sort"
 
 	"github.com/codegangsta/cli"
 	"github.com/joliv/spark"
@@ -207,6 +208,56 @@ func main() {
 				err = filter.Print()
 				if err != nil {
 					panic(err)
+				}
+
+				w.Flush()
+				if err := w.Error(); err != nil {
+					log.Fatal(err)
+				}
+			},
+		},
+		{
+			Name:    "latest",
+			Aliases: []string{"l"},
+			Usage:   "Show the latest values for all measurements",
+			Action: func(c *cli.Context) {
+				w := csv.NewWriter(os.Stdout)
+				w.Comma = delimiter
+				parser := NewParser(string(delimiter))
+				list := make(map[string]*Record)
+				var ss sort.StringSlice
+				go parser.ParseFile(getFileName(fileName))
+				err := func() error {
+					for {
+						select {
+						case record := <-parser.Record:
+							key := record.Measurement
+							val, ok := list[key]
+							if !ok {
+								list[key] = record
+								ss = append(ss, key)
+								continue
+							}
+							if record.Date.After(val.Date) {
+								list[key] = record
+							}
+						case err := <-parser.Error:
+							return err
+						case <-parser.Done:
+							return nil
+						}
+					}
+				}()
+				if err != nil {
+					panic(err)
+				}
+
+				ss.Sort()
+				for _, key := range ss {
+					r, _ := list[key]
+					if err := w.Write(r.getStrings()); err != nil {
+						log.Fatal(err)
+					}
 				}
 
 				w.Flush()
