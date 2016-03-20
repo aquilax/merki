@@ -7,15 +7,18 @@ import (
 	"sort"
 )
 
+// Accumulator collects records by string key
 type Accumulator map[string][]*Record
 
+// Add adds record to the accumulator
 func (a *Accumulator) Add(key string, r *Record) {
 	(*a)[key] = append((*a)[key], r)
 }
 
+// Print accumulator to the writer
 func (a *Accumulator) Print(w *csv.Writer, gt GroupingType) error {
 	var ss sort.StringSlice
-	for key, _ := range *a {
+	for key := range *a {
 		ss = append(ss, key)
 	}
 	ss.Sort()

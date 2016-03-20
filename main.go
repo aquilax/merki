@@ -120,7 +120,7 @@ func main() {
 				if err != nil {
 					panic(err)
 				}
-				for name, _ := range measures {
+				for name := range measures {
 					println(name)
 				}
 			},
