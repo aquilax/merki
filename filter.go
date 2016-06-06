@@ -47,7 +47,7 @@ func (f *Filter) Add(r *Record) error {
 			key = fmt.Sprintf("%02d-%02d", year, week)
 		}
 		if key == "" {
-			if err := f.w.Write(r.getStrings()); err != nil {
+			if err := f.w.Write(r.getStrings(false)); err != nil {
 				return err
 			}
 			return nil

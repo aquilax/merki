@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/codegangsta/cli"
+	"github.com/dustin/go-humanize"
 )
 
 const (
@@ -62,12 +63,14 @@ func NewRecordFromArgs(args cli.Args) (*Record, error) {
 	}, nil
 }
 
-func (r *Record) getStrings() []string {
+func (r *Record) getStrings(addRelative bool) []string {
 	result := []string{
 		r.Date.Format(formatDate),
-		r.Measurement,
-		fmt.Sprintf(formatFloat, r.Value),
 	}
+	if addRelative {
+		result = append(result, humanize.RelTime(r.Date, time.Now(), "ago", "later"))
+	}
+	result = append(result, r.Measurement, fmt.Sprintf(formatFloat, r.Value))
 	if r.Name != "" {
 		result = append(result, r.Name)
 	}

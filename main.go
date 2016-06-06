@@ -58,7 +58,7 @@ func main() {
 
 				w := csv.NewWriter(f)
 				w.Comma = delimiter
-				if err := w.Write(record.getStrings()); err != nil {
+				if err := w.Write(record.getStrings(false)); err != nil {
 					panic(err)
 				}
 				w.Flush()
@@ -255,7 +255,7 @@ func main() {
 				ss.Sort()
 				for _, key := range ss {
 					r, _ := list[key]
-					if err := w.Write(r.getStrings()); err != nil {
+					if err := w.Write(r.getStrings(true)); err != nil {
 						log.Fatal(err)
 					}
 				}
