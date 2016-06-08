@@ -44,7 +44,7 @@ func main() {
 			Name:    "add",
 			Aliases: []string{"a"},
 			Usage:   "Add measurement value to the file",
-			Action: func(c *cli.Context) {
+			Action: func(c *cli.Context) error {
 				record, err := NewRecordFromArgs(c.Args())
 				if err != nil {
 					panic(err)
@@ -65,13 +65,14 @@ func main() {
 				if err := w.Error(); err != nil {
 					log.Fatal(err)
 				}
+				return nil
 			},
 		},
 		{
 			Name:    "sparkline",
 			Aliases: []string{"spark"},
 			Usage:   "Draw sparkline graph for a measure",
-			Action: func(c *cli.Context) {
+			Action: func(c *cli.Context) error {
 				measure := c.Args().First()
 				var values []float64
 				parser := NewParser(string(delimiter))
@@ -95,13 +96,14 @@ func main() {
 				}
 				sparkline := spark.Line(values)
 				println(sparkline)
+				return nil
 			},
 		},
 		{
 			Name:    "measurements",
 			Aliases: []string{"m"},
 			Usage:   "Return list of all used measurements",
-			Action: func(c *cli.Context) {
+			Action: func(c *cli.Context) error {
 				measures := make(map[string]bool)
 				parser := NewParser(string(delimiter))
 				go parser.ParseFile(getFileName(fileName))
@@ -123,6 +125,7 @@ func main() {
 				for name := range measures {
 					println(name)
 				}
+				return nil
 			},
 		},
 		{
@@ -159,7 +162,7 @@ func main() {
 					Usage: "Sum values in the group",
 				},
 			},
-			Action: func(c *cli.Context) {
+			Action: func(c *cli.Context) error {
 				measure := c.Args().First()
 				w := csv.NewWriter(os.Stdout)
 				w.Comma = delimiter
@@ -214,13 +217,14 @@ func main() {
 				if err := w.Error(); err != nil {
 					log.Fatal(err)
 				}
+				return nil
 			},
 		},
 		{
 			Name:    "latest",
 			Aliases: []string{"l"},
 			Usage:   "Show the latest values for all measurements",
-			Action: func(c *cli.Context) {
+			Action: func(c *cli.Context) error {
 				w := csv.NewWriter(os.Stdout)
 				w.Comma = delimiter
 				parser := NewParser(string(delimiter))
@@ -264,6 +268,7 @@ func main() {
 				if err := w.Error(); err != nil {
 					log.Fatal(err)
 				}
+				return nil
 			},
 		},
 	}
