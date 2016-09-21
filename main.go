@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/csv"
-	"log"
 	"os"
 
 	"gopkg.in/urfave/cli.v1"
@@ -108,60 +106,30 @@ func main() {
 			},
 			Action: func(c *cli.Context) error {
 				measure := c.Args().First()
-				w := csv.NewWriter(os.Stdout)
-				w.Comma = delimiter
-				filter := NewFilter(w, measure)
+				gi := intervalNone
+				gt := typeAverage
 				if c.Bool("hourly") {
-					filter.gi = intervalHourly
+					gi = intervalHourly
 				}
 				if c.Bool("daily") {
-					filter.gi = intervalDaily
+					gi = intervalDaily
 				}
 				if c.Bool("weekly") {
-					filter.gi = intervalWeekly
+					gi = intervalWeekly
 				}
 				if c.Bool("average") {
-					filter.gt = typeAverage
+					gt = typeAverage
 				}
 				if c.Bool("max") {
-					filter.gt = typeMax
+					gt = typeMax
 				}
 				if c.Bool("min") {
-					filter.gt = typeMin
+					gt = typeMin
 				}
 				if c.Bool("sum") {
-					filter.gt = typeSum
+					gt = typeSum
 				}
-				parser := NewParser(string(delimiter))
-				go parser.ParseFile(getFileName(fileName))
-				err := func() error {
-					for {
-						select {
-						case record := <-parser.Record:
-							if err := filter.Add(record); err != nil {
-								return err
-							}
-						case err := <-parser.Error:
-							return err
-						case <-parser.Done:
-							return nil
-						}
-					}
-				}()
-				if err != nil {
-					panic(err)
-				}
-
-				err = filter.Print()
-				if err != nil {
-					panic(err)
-				}
-
-				w.Flush()
-				if err := w.Error(); err != nil {
-					log.Fatal(err)
-				}
-				return nil
+				return merki.Filter(getFileName(fileName), measure, gi, gt)
 			},
 		},
 		{

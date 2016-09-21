@@ -29,9 +29,9 @@ type Filter struct {
 	a       *Accumulator
 }
 
-func NewFilter(w *csv.Writer, measure string) *Filter {
+func NewFilter(w *csv.Writer, measure string, gi GroupingInterval, gt GroupingType) *Filter {
 	a := make(Accumulator)
-	return &Filter{w, measure, intervalNone, typeAverage, &a}
+	return &Filter{w, measure, gi, gt, &a}
 }
 
 func (f *Filter) Add(r *Record) error {

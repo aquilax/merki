@@ -130,3 +130,39 @@ func (m *Merki) Latest(fileName string) error {
 	}
 	return nil
 }
+
+func (m *Merki) Filter(fileName, measure string, gi GroupingInterval, gt GroupingType) error {
+	w := csv.NewWriter(os.Stdout)
+	w.Comma = delimiter
+	filter := NewFilter(w, measure, gi, gt)
+	parser := NewParser(string(delimiter))
+	go parser.ParseFile(getFileName(fileName))
+	err := func() error {
+		for {
+			select {
+			case record := <-parser.Record:
+				if err := filter.Add(record); err != nil {
+					return err
+				}
+			case err := <-parser.Error:
+				return err
+			case <-parser.Done:
+				return nil
+			}
+		}
+	}()
+	if err != nil {
+		return err
+	}
+
+	err = filter.Print()
+	if err != nil {
+		return err
+	}
+
+	w.Flush()
+	if err := w.Error(); err != nil {
+		return err
+	}
+	return nil
+}
