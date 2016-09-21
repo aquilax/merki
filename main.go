@@ -6,7 +6,6 @@ import (
 	"os"
 	"sort"
 
-	"github.com/joliv/spark"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -26,6 +25,7 @@ func getFileName(fileName string) string {
 func main() {
 	var fileName string
 
+	merki := NewMerki()
 	app := cli.NewApp()
 	app.Name = "merki"
 	app.Usage = "Command line personal health tracker"
@@ -50,23 +50,7 @@ func main() {
 				if err != nil {
 					panic(err)
 				}
-				f, err := os.OpenFile(getFileName(fileName), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-				if err != nil {
-					panic(err)
-				}
-
-				defer f.Close()
-
-				w := csv.NewWriter(f)
-				w.Comma = delimiter
-				if err := w.Write(record.getStrings(false)); err != nil {
-					panic(err)
-				}
-				w.Flush()
-				if err := w.Error(); err != nil {
-					log.Fatal(err)
-				}
-				return nil
+				return merki.AddRecord(getFileName(fileName), record)
 			},
 		},
 		{
@@ -74,30 +58,11 @@ func main() {
 			Aliases: []string{"spark"},
 			Usage:   "Draw sparkline graph for a measure",
 			Action: func(c *cli.Context) error {
-				measure := c.Args().First()
-				var values []float64
-				parser := NewParser(string(delimiter))
-				go parser.ParseFile(getFileName(fileName))
-				err := func() error {
-					for {
-						select {
-						case record := <-parser.Record:
-							if record.Measurement == measure {
-								values = append(values, record.Value)
-							}
-						case err := <-parser.Error:
-							return err
-						case <-parser.Done:
-							return nil
-						}
-					}
-				}()
-				if err != nil {
-					panic(err)
+				sparkline, err := merki.DrawSparkline(getFileName(fileName), c.Args().First())
+				if err == nil {
+					println(sparkline)
 				}
-				sparkline := spark.Line(values)
-				println(sparkline)
-				return nil
+				return err
 			},
 		},
 		{
