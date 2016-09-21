@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/codegangsta/cli"
 	"github.com/dustin/go-humanize"
 )
 
@@ -48,9 +47,8 @@ func NewRecordFromStrings(s []string) (*Record, error) {
 	}, nil
 }
 
-func NewRecordFromArgs(args cli.Args) (*Record, error) {
-	measurement := args.First()
-	fValue, err := strconv.ParseFloat(args.Get(1), 64)
+func NewRecordFromArgs(measurement, value, name, description string) (*Record, error) {
+	fValue, err := strconv.ParseFloat(value, 64)
 	if err != nil {
 		return nil, err
 	}
@@ -58,8 +56,8 @@ func NewRecordFromArgs(args cli.Args) (*Record, error) {
 		time.Now(),
 		measurement,
 		fValue,
-		args.Get(2),
-		args.Get(3),
+		name,
+		description,
 	}, nil
 }
 

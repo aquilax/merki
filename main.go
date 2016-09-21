@@ -6,8 +6,8 @@ import (
 	"os"
 	"sort"
 
-	"github.com/codegangsta/cli"
 	"github.com/joliv/spark"
+	"gopkg.in/urfave/cli.v1"
 )
 
 const (
@@ -45,7 +45,8 @@ func main() {
 			Aliases: []string{"a"},
 			Usage:   "Add measurement value to the file",
 			Action: func(c *cli.Context) error {
-				record, err := NewRecordFromArgs(c.Args())
+				args := c.Args()
+				record, err := NewRecordFromArgs(args.Get(0), args.Get(1), args.Get(2), args.Get(3))
 				if err != nil {
 					panic(err)
 				}
