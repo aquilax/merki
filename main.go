@@ -4,7 +4,6 @@ import (
 	"encoding/csv"
 	"log"
 	"os"
-	"sort"
 
 	"gopkg.in/urfave/cli.v1"
 )
@@ -70,28 +69,7 @@ func main() {
 			Aliases: []string{"m"},
 			Usage:   "Return list of all used measurements",
 			Action: func(c *cli.Context) error {
-				measures := make(map[string]bool)
-				parser := NewParser(string(delimiter))
-				go parser.ParseFile(getFileName(fileName))
-				err := func() error {
-					for {
-						select {
-						case record := <-parser.Record:
-							measures[record.Measurement] = true
-						case err := <-parser.Error:
-							return err
-						case <-parser.Done:
-							return nil
-						}
-					}
-				}()
-				if err != nil {
-					panic(err)
-				}
-				for name := range measures {
-					println(name)
-				}
-				return nil
+				return merki.Measurements(getFileName(fileName))
 			},
 		},
 		{
@@ -191,50 +169,7 @@ func main() {
 			Aliases: []string{"l"},
 			Usage:   "Show the latest values for all measurements",
 			Action: func(c *cli.Context) error {
-				w := csv.NewWriter(os.Stdout)
-				w.Comma = delimiter
-				parser := NewParser(string(delimiter))
-				list := make(map[string]*Record)
-				var ss sort.StringSlice
-				go parser.ParseFile(getFileName(fileName))
-				err := func() error {
-					for {
-						select {
-						case record := <-parser.Record:
-							key := record.Measurement
-							val, ok := list[key]
-							if !ok {
-								list[key] = record
-								ss = append(ss, key)
-								continue
-							}
-							if record.Date.After(val.Date) {
-								list[key] = record
-							}
-						case err := <-parser.Error:
-							return err
-						case <-parser.Done:
-							return nil
-						}
-					}
-				}()
-				if err != nil {
-					panic(err)
-				}
-
-				ss.Sort()
-				for _, key := range ss {
-					r, _ := list[key]
-					if err := w.Write(r.getStrings(true)); err != nil {
-						log.Fatal(err)
-					}
-				}
-
-				w.Flush()
-				if err := w.Error(); err != nil {
-					log.Fatal(err)
-				}
-				return nil
+				return merki.Latest(getFileName(fileName))
 			},
 		},
 	}
