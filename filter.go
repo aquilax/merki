@@ -13,6 +13,7 @@ const (
 	intervalHourly
 	intervalDaily
 	intervalWeekly
+	intervalTotal
 
 	typeFirst GroupingType = iota
 	typeAverage
@@ -45,6 +46,8 @@ func (f *Filter) Add(r *Record) error {
 		case intervalWeekly:
 			year, week := r.Date.ISOWeek()
 			key = fmt.Sprintf("%02d-%02d", year, week)
+		case intervalTotal:
+			key = "total"
 		}
 		if key == "" {
 			if err := f.w.Write(r.getStrings(false)); err != nil {

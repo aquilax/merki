@@ -88,6 +88,10 @@ func main() {
 					Usage: "Group values by week",
 				},
 				cli.BoolFlag{
+					Name:  "total, t",
+					Usage: "Group values by all time",
+				},
+				cli.BoolFlag{
 					Name:  "average, a",
 					Usage: "Average values in the group",
 				},
@@ -116,6 +120,9 @@ func main() {
 				}
 				if c.Bool("weekly") {
 					gi = intervalWeekly
+				}
+				if c.Bool("total") {
+					gi = intervalTotal
 				}
 				if c.Bool("average") {
 					gt = typeAverage
