@@ -2,8 +2,9 @@ package main
 
 import (
 	"encoding/csv"
-	"github.com/joliv/spark"
 	"sort"
+
+	"github.com/joliv/spark"
 
 	"os"
 )
@@ -37,7 +38,7 @@ func (m *Merki) AddRecord(fileName string, record *Record) error {
 func (m *Merki) DrawSparkline(fileName, measure string) (string, error) {
 	var values []float64
 	parser := NewParser(string(delimiter))
-	go parser.ParseFile(getFileName(fileName))
+	go parser.ParseFile(fileName)
 	err := func() error {
 		for {
 			select {
@@ -62,7 +63,7 @@ func (m *Merki) DrawSparkline(fileName, measure string) (string, error) {
 func (m *Merki) Measurements(fileName string) error {
 	measures := make(map[string]bool)
 	parser := NewParser(string(delimiter))
-	go parser.ParseFile(getFileName(fileName))
+	go parser.ParseFile(fileName)
 	err := func() error {
 		for {
 			select {
@@ -90,7 +91,7 @@ func (m *Merki) Latest(fileName string) error {
 	parser := NewParser(string(delimiter))
 	list := make(map[string]*Record)
 	var ss sort.StringSlice
-	go parser.ParseFile(getFileName(fileName))
+	go parser.ParseFile(fileName)
 	err := func() error {
 		for {
 			select {
@@ -136,7 +137,7 @@ func (m *Merki) Filter(fileName, measure string, gi GroupingInterval, gt Groupin
 	w.Comma = delimiter
 	filter := NewFilter(w, measure, gi, gt)
 	parser := NewParser(string(delimiter))
-	go parser.ParseFile(getFileName(fileName))
+	go parser.ParseFile(fileName)
 	err := func() error {
 		for {
 			select {

@@ -12,13 +12,6 @@ const (
 	delimiter       = '\t'
 )
 
-func getFileName(fileName string) string {
-	if fileName == "" {
-		return defaultFileName
-	}
-	return fileName
-}
-
 func main() {
 	var fileName string
 
@@ -47,7 +40,7 @@ func main() {
 				if err != nil {
 					panic(err)
 				}
-				return merki.AddRecord(getFileName(fileName), record)
+				return merki.AddRecord(fileName, record)
 			},
 		},
 		{
@@ -55,7 +48,7 @@ func main() {
 			Aliases: []string{"spark"},
 			Usage:   "Draw sparkline graph for a measure",
 			Action: func(c *cli.Context) error {
-				sparkline, err := merki.DrawSparkline(getFileName(fileName), c.Args().First())
+				sparkline, err := merki.DrawSparkline(fileName, c.Args().First())
 				if err == nil {
 					println(sparkline)
 				}
@@ -67,7 +60,7 @@ func main() {
 			Aliases: []string{"m"},
 			Usage:   "Return list of all used measurements",
 			Action: func(c *cli.Context) error {
-				return merki.Measurements(getFileName(fileName))
+				return merki.Measurements(fileName)
 			},
 		},
 		{
@@ -136,7 +129,7 @@ func main() {
 				if c.Bool("sum") {
 					gt = typeSum
 				}
-				return merki.Filter(getFileName(fileName), measure, gi, gt)
+				return merki.Filter(fileName, measure, gi, gt)
 			},
 		},
 		{
@@ -144,7 +137,7 @@ func main() {
 			Aliases: []string{"l"},
 			Usage:   "Show the latest values for all measurements",
 			Action: func(c *cli.Context) error {
-				return merki.Latest(getFileName(fileName))
+				return merki.Latest(fileName)
 			},
 		},
 	}
