@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	appVersion      = "0.0.1"
+	appVersion      = "0.0.2"
 	defaultFileName = "health.log"
 	delimiter       = '\t'
 )
