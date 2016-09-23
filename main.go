@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"time"
 
 	"gopkg.in/urfave/cli.v1"
 )
@@ -36,7 +37,7 @@ func main() {
 			Usage:   "Add measurement value to the file",
 			Action: func(c *cli.Context) error {
 				args := c.Args()
-				record, err := NewRecordFromArgs(args.Get(0), args.Get(1), args.Get(2), args.Get(3))
+				record, err := NewRecord(time.Now(), args.Get(0), args.Get(1), args.Get(2), args.Get(3))
 				if err != nil {
 					panic(err)
 				}
