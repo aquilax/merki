@@ -9,10 +9,12 @@ import (
 	"os"
 )
 
-type Merki struct{}
+type Merki struct {
+	delimiter rune
+}
 
-func NewMerki() *Merki {
-	return &Merki{}
+func NewMerki(delimier rune) *Merki {
+	return &Merki{delimiter}
 }
 
 func (m *Merki) AddRecord(fileName string, record *Record) error {
@@ -24,7 +26,7 @@ func (m *Merki) AddRecord(fileName string, record *Record) error {
 	defer f.Close()
 
 	w := csv.NewWriter(f)
-	w.Comma = delimiter
+	w.Comma = m.delimiter
 	if err := w.Write(record.getStrings(false)); err != nil {
 		return err
 	}
@@ -37,7 +39,7 @@ func (m *Merki) AddRecord(fileName string, record *Record) error {
 
 func (m *Merki) DrawSparkline(fileName, measure string) (string, error) {
 	var values []float64
-	parser := NewParser(string(delimiter))
+	parser := NewParser(string(m.delimiter))
 	go parser.ParseFile(fileName)
 	err := func() error {
 		for {
@@ -62,7 +64,7 @@ func (m *Merki) DrawSparkline(fileName, measure string) (string, error) {
 
 func (m *Merki) Measurements(fileName string) error {
 	measures := make(map[string]bool)
-	parser := NewParser(string(delimiter))
+	parser := NewParser(string(m.delimiter))
 	go parser.ParseFile(fileName)
 	err := func() error {
 		for {
@@ -87,8 +89,8 @@ func (m *Merki) Measurements(fileName string) error {
 
 func (m *Merki) Latest(fileName string) error {
 	w := csv.NewWriter(os.Stdout)
-	w.Comma = delimiter
-	parser := NewParser(string(delimiter))
+	w.Comma = m.delimiter
+	parser := NewParser(string(m.delimiter))
 	list := make(map[string]*Record)
 	var ss sort.StringSlice
 	go parser.ParseFile(fileName)
@@ -116,8 +118,9 @@ func (m *Merki) Latest(fileName string) error {
 	if err != nil {
 		return err
 	}
-
+	print(ss)
 	ss.Sort()
+	print(ss)
 	for _, key := range ss {
 		r, _ := list[key]
 		if err := w.Write(r.getStrings(true)); err != nil {
@@ -134,9 +137,9 @@ func (m *Merki) Latest(fileName string) error {
 
 func (m *Merki) Filter(fileName, measure string, gi GroupingInterval, gt GroupingType) error {
 	w := csv.NewWriter(os.Stdout)
-	w.Comma = delimiter
+	w.Comma = m.delimiter
 	filter := NewFilter(w, measure, gi, gt)
-	parser := NewParser(string(delimiter))
+	parser := NewParser(string(m.delimiter))
 	go parser.ParseFile(fileName)
 	err := func() error {
 		for {

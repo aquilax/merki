@@ -16,7 +16,7 @@ const (
 func main() {
 	var fileName string
 
-	merki := NewMerki()
+	merki := NewMerki(delimiter)
 	app := cli.NewApp()
 	app.Name = "merki"
 	app.Usage = "Command line personal health tracker"
