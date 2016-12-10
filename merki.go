@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"fmt"
 	"sort"
 
 	"github.com/joliv/spark"
@@ -82,7 +83,7 @@ func (m *Merki) Measurements(fileName string) error {
 		return err
 	}
 	for name := range measures {
-		println(name)
+		fmt.Println(name)
 	}
 	return nil
 }
@@ -118,9 +119,7 @@ func (m *Merki) Latest(fileName string) error {
 	if err != nil {
 		return err
 	}
-	print(ss)
 	ss.Sort()
-	print(ss)
 	for _, key := range ss {
 		r, _ := list[key]
 		if err := w.Write(r.getStrings(true)); err != nil {

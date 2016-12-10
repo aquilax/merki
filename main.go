@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -51,7 +52,7 @@ func main() {
 			Action: func(c *cli.Context) error {
 				sparkline, err := merki.DrawSparkline(fileName, c.Args().First())
 				if err == nil {
-					println(sparkline)
+					fmt.Println(sparkline)
 				}
 				return err
 			},
