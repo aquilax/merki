@@ -10,6 +10,7 @@ import (
 
 const (
 	formatDate  = "2006-01-02 15:04:05"
+	tzFormat    = " -0700 MST"
 	formatFloat = "%.3f"
 )
 
@@ -44,7 +45,7 @@ func NewRecord(timestamp time.Time, measurement, value, name, description string
 }
 
 func NewRecordFromStrings(s []string) (*Record, error) {
-	timestamp, err := time.Parse(formatDate, getS(s, 0))
+	timestamp, err := time.Parse(formatDate+tzFormat, getS(s, 0)+time.Now().Format(tzFormat))
 	if err != nil {
 		return nil, err
 	}
