@@ -7,6 +7,7 @@ import (
 
 type GroupingInterval int
 type GroupingType int
+type RoundType int
 
 const (
 	intervalNone GroupingInterval = iota
@@ -20,6 +21,11 @@ const (
 	typeMax
 	typeMin
 	typeSum
+
+	roundSeconds RoundType = iota
+	roundMinutes
+	roundHours
+	roundDays
 )
 
 type Filter struct {

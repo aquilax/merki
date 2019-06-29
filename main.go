@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	appVersion      = "0.0.6"
+	appVersion      = "0.0.7"
 	defaultFileName = "health.log"
 	delimiter       = '\t'
 )
@@ -138,9 +138,33 @@ func main() {
 			Name:    "interval",
 			Aliases: []string{"i"},
 			Usage:   "Shows the interval between two measurement events",
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "minutes, m",
+					Usage: "Group values by hour",
+				},
+				cli.BoolFlag{
+					Name:  "hours, r",
+					Usage: "Group values by hour",
+				},
+				cli.BoolFlag{
+					Name:  "days, d",
+					Usage: "Group values by day",
+				},
+			},
 			Action: func(c *cli.Context) error {
 				measure := c.Args().First()
-				return merki.Interval(fileName, measure)
+				r := roundSeconds
+				if c.Bool("minutes") {
+					r = roundMinutes
+				}
+				if c.Bool("hours") {
+					r = roundHours
+				}
+				if c.Bool("days") {
+					r = roundDays
+				}
+				return merki.Interval(fileName, measure, r)
 			},
 		},
 		{

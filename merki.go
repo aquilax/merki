@@ -171,24 +171,37 @@ func (m *Merki) Filter(fileName, measure string, gi GroupingInterval, gt Groupin
 	return nil
 }
 
-func (m *Merki) Interval(fileName, measure string) error {
+func formatDuration(d time.Duration, r RoundType) string {
+	if r == roundDays {
+		return fmt.Sprintf(formatFloat, d.Hours()/24)
+	}
+	if r == roundHours {
+		return fmt.Sprintf(formatFloat, d.Hours())
+	}
+	if r == roundMinutes {
+		return fmt.Sprintf(formatFloat, d.Minutes())
+	}
+	return fmt.Sprintf("%d", int(d.Seconds()))
+}
+
+func (m *Merki) Interval(fileName, measure string, r RoundType) error {
 	w := csv.NewWriter(os.Stdout)
 	w.Comma = m.delimiter
 	parser := NewParser(string(m.delimiter))
 	go parser.ParseFile(fileName)
 	err := func() error {
 		var startTime *time.Time
-		var interval time.Duration
+		var duration time.Duration
 		for {
 			select {
 			case record := <-parser.Record:
 				if record.Measurement == measure {
 					if startTime != nil {
-						interval = record.Date.Sub(*startTime)
+						duration = record.Date.Sub(*startTime)
 						err := w.Write([]string{
 							record.Date.Format(formatDate),
 							measure,
-							fmt.Sprintf("%d", int(interval.Seconds())),
+							formatDuration(duration, r),
 						})
 						if err != nil {
 							return err

@@ -8,7 +8,7 @@ USAGE:
    merki [global options] command [command options] [arguments...]
 
 VERSION:
-   0.0.6
+   0.0.7
 
 COMMANDS:
      add, a            Add measurement value to the file
