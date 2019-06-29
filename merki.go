@@ -185,7 +185,11 @@ func (m *Merki) Interval(fileName, measure string) error {
 				if record.Measurement == measure {
 					if startTime != nil {
 						interval = record.Date.Sub(*startTime)
-						err := w.Write([]string{fmt.Sprintf("%d", int(interval.Seconds()))})
+						err := w.Write([]string{
+							record.Date.Format(formatDate),
+							measure,
+							fmt.Sprintf("%d", int(interval.Seconds())),
+						})
 						if err != nil {
 							return err
 						}
