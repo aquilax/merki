@@ -1,7 +1,6 @@
 # merki
 
 ```shell
-$ merki
 NAME:
    merki - Command line personal health tracker
 
@@ -9,7 +8,7 @@ USAGE:
    merki [global options] command [command options] [arguments...]
 
 VERSION:
-   0.0.5
+   0.0.6
 
 COMMANDS:
      add, a            Add measurement value to the file
