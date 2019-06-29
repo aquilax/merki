@@ -1,5 +1,6 @@
 # merki
 
+```shell
 $ merki
 NAME:
    merki - Command line personal health tracker
@@ -23,3 +24,4 @@ GLOBAL OPTIONS:
    --file value, -f value  Log file path (default: "health.log") [$MERKI_FILE]
    --help, -h              show help
    --version, -v           print the version
+```
