@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/joliv/spark"
 
@@ -159,6 +160,49 @@ func (m *Merki) Filter(fileName, measure string, gi GroupingInterval, gt Groupin
 	}
 
 	err = filter.Print()
+	if err != nil {
+		return err
+	}
+
+	w.Flush()
+	if err := w.Error(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Merki) Interval(fileName, measure string) error {
+	w := csv.NewWriter(os.Stdout)
+	w.Comma = m.delimiter
+	parser := NewParser(string(m.delimiter))
+	go parser.ParseFile(fileName)
+	err := func() error {
+		var startTime *time.Time
+		var interval time.Duration
+		for {
+			select {
+			case record := <-parser.Record:
+				if record.Measurement == measure {
+					if startTime != nil {
+						interval = record.Date.Sub(*startTime)
+						err := w.Write([]string{fmt.Sprintf("%d", interval.Seconds())})
+						if err != nil {
+							return err
+						}
+					}
+					startTime = &record.Date
+				}
+			case err := <-parser.Error:
+				return err
+			case <-parser.Done:
+				return nil
+			}
+		}
+	}()
+	if err != nil {
+		return err
+	}
+	w.Flush()
 	if err != nil {
 		return err
 	}

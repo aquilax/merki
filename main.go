@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	appVersion      = "0.0.4"
+	appVersion      = "0.0.5"
 	defaultFileName = "health.log"
 	delimiter       = '\t'
 )
@@ -132,6 +132,15 @@ func main() {
 					gt = typeSum
 				}
 				return merki.Filter(fileName, measure, gi, gt)
+			},
+		},
+		{
+			Name:    "interval",
+			Aliases: []string{"i"},
+			Usage:   "Shows the interval between two measurement events",
+			Action: func(c *cli.Context) error {
+				measure := c.Args().First()
+				return merki.Interval(fileName, measure)
 			},
 		},
 		{
