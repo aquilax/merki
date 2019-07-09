@@ -192,10 +192,13 @@ func (m *Merki) Interval(fileName, measure string, r RoundType) error {
 	err := func() error {
 		var startTime *time.Time
 		var duration time.Duration
+		var record *Record
+		var lastRecord *Record
 		for {
 			select {
-			case record := <-parser.Record:
+			case record = <-parser.Record:
 				if record.Measurement == measure {
+					lastRecord = record
 					if startTime != nil {
 						duration = record.Date.Sub(*startTime)
 						err := w.Write([]string{
@@ -212,6 +215,18 @@ func (m *Merki) Interval(fileName, measure string, r RoundType) error {
 			case err := <-parser.Error:
 				return err
 			case <-parser.Done:
+				if startTime != nil && lastRecord != nil {
+					duration = time.Now().Sub(*startTime)
+					err := w.Write([]string{
+						lastRecord.Date.Format(formatDate),
+						measure,
+						formatDuration(duration, r),
+					})
+					if err != nil {
+						return err
+					}
+				}
+
 				return nil
 			}
 		}
