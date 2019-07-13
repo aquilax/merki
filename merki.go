@@ -6,6 +6,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/guptarohit/asciigraph"
 	"github.com/joliv/spark"
 
 	"os"
@@ -39,9 +40,9 @@ func (m *Merki) AddRecord(fileName string, record *Record) error {
 	return nil
 }
 
-func (m *Merki) DrawSparkline(fileName, measure string) (string, error) {
+func getMeasureValues(delimiter, fileName, measure string) ([]float64, error) {
 	var values []float64
-	parser := NewParser(string(m.delimiter))
+	parser := NewParser(delimiter)
 	go parser.ParseFile(fileName)
 	err := func() error {
 		for {
@@ -57,6 +58,20 @@ func (m *Merki) DrawSparkline(fileName, measure string) (string, error) {
 			}
 		}
 	}()
+	return values, err
+}
+
+func (m *Merki) DrawGraph(fileName, measure string) (string, error) {
+	values, err := getMeasureValues(string(m.delimiter), fileName, measure)
+	if err != nil || len(values) == 0 {
+		return "", err
+	}
+	graph := asciigraph.Plot(values, asciigraph.Width(80))
+	return graph, err
+}
+
+func (m *Merki) DrawSparkline(fileName, measure string) (string, error) {
+	values, err := getMeasureValues(string(m.delimiter), fileName, measure)
 	if err != nil {
 		return "", err
 	}
