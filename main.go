@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	appVersion      = "0.0.7"
+	appVersion      = "0.0.8"
 	defaultFileName = "health.log"
 	delimiter       = '\t'
 )
@@ -53,6 +53,18 @@ func main() {
 				sparkline, err := merki.DrawSparkline(fileName, c.Args().First())
 				if err == nil {
 					fmt.Println(sparkline)
+				}
+				return err
+			},
+		},
+		{
+			Name:    "asciigraph",
+			Aliases: []string{"graph"},
+			Usage:   "Draw ascii graph for a measure",
+			Action: func(c *cli.Context) error {
+				graph, err := merki.DrawGraph(fileName, c.Args().First())
+				if err == nil {
+					fmt.Println(graph)
 				}
 				return err
 			},
