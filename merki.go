@@ -3,66 +3,49 @@ package main
 import (
 	"encoding/csv"
 	"fmt"
+	"io"
 	"sort"
 	"time"
 
 	"github.com/guptarohit/asciigraph"
 	"github.com/joliv/spark"
-
-	"os"
 )
 
 type Merki struct {
 	delimiter rune
+	output    io.Writer
 }
 
-func NewMerki(delimier rune) *Merki {
-	return &Merki{delimiter}
+func NewMerki(delimiter rune, o io.Writer) *Merki {
+	return &Merki{delimiter, o}
 }
 
-func (m *Merki) AddRecord(fileName string, record *Record) error {
-	f, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-	if err != nil {
+func (m *Merki) AddRecord(w io.Writer, record *Record) error {
+	wr := csv.NewWriter(w)
+	wr.Comma = m.delimiter
+	if err := wr.Write(record.getStrings(false)); err != nil {
 		return err
 	}
-
-	defer f.Close()
-
-	w := csv.NewWriter(f)
-	w.Comma = m.delimiter
-	if err := w.Write(record.getStrings(false)); err != nil {
-		return err
-	}
-	w.Flush()
-	if err := w.Error(); err != nil {
-		return err
-	}
-	return nil
+	wr.Flush()
+	return wr.Error()
 }
 
-func getMeasureValues(delimiter, fileName, measure string) ([]float64, error) {
+func getMeasureValues(r io.Reader, delimiter rune, measure string) ([]float64, error) {
 	var values []float64
-	parser := NewParser(delimiter)
-	go parser.ParseFile(fileName)
-	err := func() error {
-		for {
-			select {
-			case record := <-parser.Record:
-				if record.Measurement == measure {
-					values = append(values, record.Value)
-				}
-			case err := <-parser.Error:
-				return err
-			case <-parser.Done:
-				return nil
-			}
+	err := ParseStreamCallback(r, delimiter, func(record *Record, err error) (bool, error) {
+		if err != nil {
+			return true, err
 		}
-	}()
+		if record.Measurement == measure {
+			values = append(values, record.Value)
+		}
+		return false, nil
+	})
 	return values, err
 }
 
-func (m *Merki) DrawGraph(fileName, measure string) (string, error) {
-	values, err := getMeasureValues(string(m.delimiter), fileName, measure)
+func (m *Merki) DrawGraph(r io.Reader, measure string) (string, error) {
+	values, err := getMeasureValues(r, m.delimiter, measure)
 	if err != nil || len(values) == 0 {
 		return "", err
 	}
@@ -70,120 +53,88 @@ func (m *Merki) DrawGraph(fileName, measure string) (string, error) {
 	return graph, err
 }
 
-func (m *Merki) DrawSparkline(fileName, measure string) (string, error) {
-	values, err := getMeasureValues(string(m.delimiter), fileName, measure)
+func (m *Merki) DrawSparkLine(r io.Reader, measure string) (string, error) {
+	values, err := getMeasureValues(r, m.delimiter, measure)
 	if err != nil {
 		return "", err
 	}
-	sparkline := spark.Line(values)
-	return sparkline, nil
+	return spark.Line(values), nil
 }
 
-func (m *Merki) Measurements(fileName string) error {
+func (m *Merki) Measurements(r io.Reader) error {
 	measures := make(map[string]bool)
-	parser := NewParser(string(m.delimiter))
-	go parser.ParseFile(fileName)
-	err := func() error {
-		for {
-			select {
-			case record := <-parser.Record:
-				measures[record.Measurement] = true
-			case err := <-parser.Error:
-				return err
-			case <-parser.Done:
-				return nil
-			}
+	err := ParseStreamCallback(r, m.delimiter, func(record *Record, err error) (bool, error) {
+		if err != nil {
+			return true, err
 		}
-	}()
+		measures[record.Measurement] = true
+		return false, nil
+	})
 	if err != nil {
 		return err
 	}
 	for name := range measures {
-		fmt.Println(name)
+		if _, err = fmt.Fprintln(m.output, name); err != nil {
+			return err
+		}
 	}
-	return nil
+	return err
 }
 
-func (m *Merki) Latest(fileName string) error {
-	w := csv.NewWriter(os.Stdout)
+func (m *Merki) Latest(r io.Reader) error {
+	w := csv.NewWriter(m.output)
 	w.Comma = m.delimiter
-	parser := NewParser(string(m.delimiter))
 	list := make(map[string]*Record)
 	var ss sort.StringSlice
-	go parser.ParseFile(fileName)
-	err := func() error {
-		for {
-			select {
-			case record := <-parser.Record:
-				key := record.Measurement
-				val, ok := list[key]
-				if !ok {
-					list[key] = record
-					ss = append(ss, key)
-					continue
-				}
-				if record.Date.After(val.Date) {
-					list[key] = record
-				}
-			case err := <-parser.Error:
-				return err
-			case <-parser.Done:
-				return nil
-			}
+	err := ParseStreamCallback(r, m.delimiter, func(record *Record, err error) (bool, error) {
+		if err != nil {
+			return true, err
 		}
-	}()
+		key := record.Measurement
+		val, ok := list[key]
+		if !ok {
+			list[key] = record
+			ss = append(ss, key)
+		} else if record.Date.After(val.Date) {
+			list[key] = record
+		}
+		return false, nil
+	})
 	if err != nil {
 		return err
 	}
 	ss.Sort()
 	for _, key := range ss {
-		r, _ := list[key]
+		r := list[key]
 		if err := w.Write(r.getStrings(true)); err != nil {
 			return err
 		}
 	}
-
 	w.Flush()
-	if err := w.Error(); err != nil {
-		return err
-	}
-	return nil
+	return w.Error()
 }
 
-func (m *Merki) Filter(fileName, measure string, gi GroupingInterval, gt GroupingType) error {
-	w := csv.NewWriter(os.Stdout)
+func (m *Merki) Filter(r io.Reader, measure string, gi GroupingInterval, gt GroupingType) error {
+	w := csv.NewWriter(m.output)
 	w.Comma = m.delimiter
 	filter := NewFilter(w, measure, gi, gt)
-	parser := NewParser(string(m.delimiter))
-	go parser.ParseFile(fileName)
-	err := func() error {
-		for {
-			select {
-			case record := <-parser.Record:
-				if err := filter.Add(record); err != nil {
-					return err
-				}
-			case err := <-parser.Error:
-				return err
-			case <-parser.Done:
-				return nil
-			}
+	err := ParseStreamCallback(r, m.delimiter, func(record *Record, err error) (bool, error) {
+		if err != nil {
+			return true, err
 		}
-	}()
+		if err = filter.Add(record); err != nil {
+			return true, err
+		}
+		return false, nil
+	})
 	if err != nil {
 		return err
 	}
-
-	err = filter.Print()
-	if err != nil {
+	if err = filter.Print(); err != nil {
 		return err
 	}
-
 	w.Flush()
-	if err := w.Error(); err != nil {
-		return err
-	}
-	return nil
+	return w.Error()
 }
 
 func formatDuration(d time.Duration, r RoundType) string {
@@ -199,64 +150,49 @@ func formatDuration(d time.Duration, r RoundType) string {
 	return fmt.Sprintf("%d", int(d.Seconds()))
 }
 
-func (m *Merki) Interval(fileName, measure string, r RoundType) error {
-	w := csv.NewWriter(os.Stdout)
+func (m *Merki) Interval(r io.Reader, measure string, round RoundType) error {
+	w := csv.NewWriter(m.output)
 	w.Comma = m.delimiter
-	parser := NewParser(string(m.delimiter))
-	go parser.ParseFile(fileName)
-	err := func() error {
-		var startTime *time.Time
-		var duration time.Duration
-		var record *Record
-		var lastRecord *Record
-		for {
-			select {
-			case record = <-parser.Record:
-				if record.Measurement == measure {
-					lastRecord = record
-					if startTime != nil {
-						duration = record.Date.Sub(*startTime)
-						err := w.Write([]string{
-							record.Date.Format(formatDate),
-							measure,
-							formatDuration(duration, r),
-						})
-						if err != nil {
-							return err
-						}
-					}
-					startTime = &record.Date
-				}
-			case err := <-parser.Error:
-				return err
-			case <-parser.Done:
-				if startTime != nil && lastRecord != nil {
-					duration = time.Now().Sub(*startTime)
-					err := w.Write([]string{
-						lastRecord.Date.Format(formatDate),
-						measure,
-						formatDuration(duration, r),
-					})
-					if err != nil {
-						return err
-					}
-				}
 
-				return nil
-			}
+	var startTime *time.Time
+	var duration time.Duration
+	var lastRecord *Record
+
+	err := ParseStreamCallback(r, m.delimiter, func(record *Record, err error) (bool, error) {
+		if err != nil {
+			return true, err
 		}
-	}()
+		if record.Measurement == measure {
+			lastRecord = record
+			if startTime != nil {
+				duration = record.Date.Sub(*startTime)
+				if err := w.Write([]string{
+					record.Date.Format(formatDate),
+					measure,
+					formatDuration(duration, round),
+				}); err != nil {
+					return true, err
+				}
+			}
+			startTime = &record.Date
+		}
+
+		return false, nil
+	})
 	if err != nil {
 		return err
 	}
-	w.Flush()
-	if err != nil {
-		return err
+	if startTime != nil && lastRecord != nil {
+		duration = time.Since(*startTime)
+		if err = w.Write([]string{
+			lastRecord.Date.Format(formatDate),
+			measure,
+			formatDuration(duration, round),
+		}); err != nil {
+			return err
+		}
 	}
 
 	w.Flush()
-	if err := w.Error(); err != nil {
-		return err
-	}
-	return nil
+	return w.Error()
 }

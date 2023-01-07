@@ -22,8 +22,7 @@ type Record struct {
 	Description string
 }
 
-func getS(s []string, n int) string {
-	l := len(s)
+func getS(s []string, l, n int) string {
 	if n < l {
 		return s[n]
 	}
@@ -45,11 +44,12 @@ func NewRecord(timestamp time.Time, measurement, value, name, description string
 }
 
 func NewRecordFromStrings(s []string) (*Record, error) {
-	timestamp, err := time.Parse(formatDate+tzFormat, getS(s, 0)+time.Now().Format(tzFormat))
+	l := len(s)
+	timestamp, err := time.Parse(formatDate+tzFormat, getS(s, l, 0)+time.Now().Format(tzFormat))
 	if err != nil {
 		return nil, err
 	}
-	return NewRecord(timestamp, getS(s, 1), getS(s, 2), getS(s, 3), getS(s, 4))
+	return NewRecord(timestamp, getS(s, l, 1), getS(s, l, 2), getS(s, l, 3), getS(s, l, 4))
 }
 
 func (r *Record) getStrings(addRelative bool) []string {

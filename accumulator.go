@@ -23,7 +23,7 @@ func (a *Accumulator) Print(w *csv.Writer, gt GroupingType) error {
 	}
 	ss.Sort()
 	for _, key := range ss {
-		records, _ := (*a)[key]
+		records := (*a)[key]
 		s := []string{
 			key,
 			records[0].Measurement,
@@ -51,7 +51,10 @@ func (a *Accumulator) calc(records []*Record, gt GroupingType) float64 {
 	case typeAverage:
 		return average(values)
 	}
-	return first(values)
+	if len(values) > 0 {
+		return first(values)
+	}
+	return 0
 }
 
 func sum(v []float64) float64 {
