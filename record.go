@@ -29,15 +29,11 @@ func getS(s []string, l, n int) string {
 	return ""
 }
 
-func NewRecord(timestamp time.Time, measurement, value, name, description string) (*Record, error) {
-	fValue, err := strconv.ParseFloat(value, 64)
-	if err != nil {
-		return nil, err
-	}
+func NewRecord(timestamp time.Time, measurement string, value float64, name, description string) (*Record, error) {
 	return &Record{
 		timestamp,
 		measurement,
-		fValue,
+		value,
 		name,
 		description,
 	}, nil
@@ -49,7 +45,11 @@ func NewRecordFromStrings(s []string) (*Record, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewRecord(timestamp, getS(s, l, 1), getS(s, l, 2), getS(s, l, 3), getS(s, l, 4))
+	fValue, err := strconv.ParseFloat(getS(s, l, 2), 64)
+	if err != nil {
+		return nil, err
+	}
+	return NewRecord(timestamp, getS(s, l, 1), fValue, getS(s, l, 3), getS(s, l, 4))
 }
 
 func (r *Record) getStrings(addRelative bool) []string {

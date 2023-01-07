@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/aquilax/merki"
@@ -42,7 +43,11 @@ func main() {
 			Usage:   "Add measurement value to the file",
 			Action: func(c *cli.Context) error {
 				args := c.Args()
-				record, err := merki.NewRecord(time.Now(), args.Get(0), args.Get(1), args.Get(2), args.Get(3))
+				fValue, err := strconv.ParseFloat(args.Get(1), 64)
+				if err != nil {
+					return err
+				}
+				record, err := merki.NewRecord(time.Now(), args.Get(0), fValue, args.Get(2), args.Get(3))
 				if err != nil {
 					return err
 				}
