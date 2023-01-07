@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"gopkg.in/urfave/cli.v1"
+	"github.com/urfave/cli/v2"
 )
 
 const (
@@ -25,15 +25,16 @@ func main() {
 	app.Usage = "Command line personal health tracker"
 	app.Version = appVersion
 	app.Flags = []cli.Flag{
-		cli.StringFlag{
-			Name:        "file, f",
+		&cli.StringFlag{
+			Name:        "file",
+			Aliases:     []string{"f"},
 			Value:       defaultFileName,
 			Usage:       "Log file path",
-			EnvVar:      "MERKI_FILE",
+			EnvVars:     []string{"MERKI_FILE"},
 			Destination: &fileName,
 		},
 	}
-	app.Commands = []cli.Command{
+	app.Commands = []*cli.Command{
 		{
 			Name:    "add",
 			Aliases: []string{"a"},
@@ -95,37 +96,45 @@ func main() {
 			Aliases: []string{"f"},
 			Usage:   "Filter records for single measurement",
 			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name:  "hourly, r",
-					Usage: "Group values by hour",
+				&cli.BoolFlag{
+					Name:    "hourly",
+					Aliases: []string{"r"},
+					Usage:   "Group values by hour",
 				},
-				cli.BoolFlag{
-					Name:  "daily, d",
-					Usage: "Group values by day",
+				&cli.BoolFlag{
+					Name:    "daily",
+					Aliases: []string{"d"},
+					Usage:   "Group values by day",
 				},
-				cli.BoolFlag{
-					Name:  "weekly, w",
-					Usage: "Group values by week",
+				&cli.BoolFlag{
+					Name:    "weekly",
+					Aliases: []string{"w"},
+					Usage:   "Group values by week",
 				},
-				cli.BoolFlag{
-					Name:  "total, t",
-					Usage: "Group values by all time",
+				&cli.BoolFlag{
+					Name:    "total",
+					Aliases: []string{"t"},
+					Usage:   "Group values by all time",
 				},
-				cli.BoolFlag{
-					Name:  "average, a",
-					Usage: "Average values in the group",
+				&cli.BoolFlag{
+					Name:    "average",
+					Aliases: []string{"a"},
+					Usage:   "Average values in the group",
 				},
-				cli.BoolFlag{
-					Name:  "max, x",
-					Usage: "Max values in the group",
+				&cli.BoolFlag{
+					Name:    "max",
+					Aliases: []string{"x"},
+					Usage:   "Max values in the group",
 				},
-				cli.BoolFlag{
-					Name:  "min, n",
-					Usage: "Min values in the group",
+				&cli.BoolFlag{
+					Name:    "min",
+					Aliases: []string{"n"},
+					Usage:   "Min values in the group",
 				},
-				cli.BoolFlag{
-					Name:  "sum, s",
-					Usage: "Sum values in the group",
+				&cli.BoolFlag{
+					Name:    "sum",
+					Aliases: []string{"s"},
+					Usage:   "Sum values in the group",
 				},
 			},
 			Action: func(c *cli.Context) error {
@@ -166,17 +175,20 @@ func main() {
 			Aliases: []string{"i"},
 			Usage:   "Shows the interval between two measurement events",
 			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name:  "minutes, m",
-					Usage: "Group values by hour",
+				&cli.BoolFlag{
+					Name:    "minutes",
+					Aliases: []string{"m"},
+					Usage:   "Group values by hour",
 				},
-				cli.BoolFlag{
-					Name:  "hours, r",
-					Usage: "Group values by hour",
+				&cli.BoolFlag{
+					Name:    "hours",
+					Aliases: []string{"r"},
+					Usage:   "Group values by hour",
 				},
-				cli.BoolFlag{
-					Name:  "days, d",
-					Usage: "Group values by day",
+				&cli.BoolFlag{
+					Name:    "days",
+					Aliases: []string{"d"},
+					Usage:   "Group values by day",
 				},
 			},
 			Action: func(c *cli.Context) error {
