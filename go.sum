@@ -1,8 +1,8 @@
 github.com/dustin/go-humanize v1.0.0 h1:VSnTsYCnlFHaM2/igO1h6X3HA71jcobQuxemgkq4zYo=
 github.com/dustin/go-humanize v1.0.0/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
-github.com/guptarohit/asciigraph v0.4.1 h1:YHmCMN8VH81BIUIgTg2Fs3B52QDxNZw2RQ6j5pGoSxo=
-github.com/guptarohit/asciigraph v0.4.1/go.mod h1:9fYEfE5IGJGxlP1B+w8wHFy7sNZMhPtn59f0RLtpRFM=
-github.com/joliv/spark v0.0.0-20151215235333-2d625891bea1 h1:OPh2F8Dxm/Hf9EM7RrKlTdbPTT+J9l1e0JJhZBW0Un4=
-github.com/joliv/spark v0.0.0-20151215235333-2d625891bea1/go.mod h1:9naDYeY0QbViN+02yKWdzKqt/btnAQPJgTmW9ZzdvhQ=
+github.com/guptarohit/asciigraph v0.5.5 h1:ccFnUF8xYIOUPPY3tmdvRyHqmn1MYI9iv1pLKX+/ZkQ=
+github.com/guptarohit/asciigraph v0.5.5/go.mod h1:dYl5wwK4gNsnFf9Zp+l06rFiDZ5YtXM6x7SRWZ3KGag=
+github.com/joliv/spark v0.0.0-20220827214902-be9742b47479 h1:y02iusAF+WFhqiK/XftNNnZvWvQCqeJpz4VrtHx+c0s=
+github.com/joliv/spark v0.0.0-20220827214902-be9742b47479/go.mod h1:9naDYeY0QbViN+02yKWdzKqt/btnAQPJgTmW9ZzdvhQ=
 gopkg.in/urfave/cli.v1 v1.20.0 h1:NdAVW6RYxDif9DhDHaAortIu956m2c0v+09AZBPTbE0=
 gopkg.in/urfave/cli.v1 v1.20.0/go.mod h1:vuBzUtMdQeixQj8LVd+/98pzhxNGQoyuPBlsXHOQNO0=
