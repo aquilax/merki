@@ -1,4 +1,4 @@
-package main
+package merki
 
 import (
 	"encoding/csv"
@@ -16,7 +16,7 @@ type Merki struct {
 	output    io.Writer
 }
 
-func NewMerki(delimiter rune, o io.Writer) *Merki {
+func New(delimiter rune, o io.Writer) *Merki {
 	return &Merki{delimiter, o}
 }
 
@@ -138,13 +138,13 @@ func (m *Merki) Filter(r io.Reader, measure string, gi GroupingInterval, gt Grou
 }
 
 func formatDuration(d time.Duration, r RoundType) string {
-	if r == roundDays {
+	if r == RoundDays {
 		return fmt.Sprintf(formatFloat, d.Hours()/24)
 	}
-	if r == roundHours {
+	if r == RoundHours {
 		return fmt.Sprintf(formatFloat, d.Hours())
 	}
-	if r == roundMinutes {
+	if r == RoundMinutes {
 		return fmt.Sprintf(formatFloat, d.Minutes())
 	}
 	return fmt.Sprintf("%d", int(d.Seconds()))

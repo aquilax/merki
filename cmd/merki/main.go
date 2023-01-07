@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/aquilax/merki"
 	"github.com/urfave/cli/v2"
 )
 
@@ -19,7 +20,7 @@ func main() {
 	var fileName string
 
 	output := os.Stdout
-	merki := NewMerki(delimiter, output)
+	m := merki.New(delimiter, output)
 	app := cli.NewApp()
 	app.Name = "merki"
 	app.Usage = "Command line personal health tracker"
@@ -41,12 +42,12 @@ func main() {
 			Usage:   "Add measurement value to the file",
 			Action: func(c *cli.Context) error {
 				args := c.Args()
-				record, err := NewRecord(time.Now(), args.Get(0), args.Get(1), args.Get(2), args.Get(3))
+				record, err := merki.NewRecord(time.Now(), args.Get(0), args.Get(1), args.Get(2), args.Get(3))
 				if err != nil {
 					return err
 				}
 				return withWriter(fileName, func(w io.Writer) error {
-					return merki.AddRecord(w, record)
+					return m.AddRecord(w, record)
 				})
 
 			},
@@ -57,7 +58,7 @@ func main() {
 			Usage:   "Draw sparkline graph for a measure",
 			Action: func(c *cli.Context) error {
 				return withReader(fileName, func(r io.Reader) error {
-					sparkLine, err := merki.DrawSparkLine(r, c.Args().First())
+					sparkLine, err := m.DrawSparkLine(r, c.Args().First())
 					if err != nil {
 						return err
 					}
@@ -72,7 +73,7 @@ func main() {
 			Usage:   "Draw ascii graph for a measure",
 			Action: func(c *cli.Context) error {
 				return withReader(fileName, func(r io.Reader) error {
-					graph, err := merki.DrawGraph(r, c.Args().First())
+					graph, err := m.DrawGraph(r, c.Args().First())
 					if err == nil {
 						return err
 					}
@@ -87,7 +88,7 @@ func main() {
 			Usage:   "Return list of all used measurements",
 			Action: func(c *cli.Context) error {
 				return withReader(fileName, func(r io.Reader) error {
-					return merki.Measurements(r)
+					return m.Measurements(r)
 				})
 			},
 		},
@@ -139,34 +140,34 @@ func main() {
 			},
 			Action: func(c *cli.Context) error {
 				measure := c.Args().First()
-				gi := intervalNone
-				gt := typeAverage
+				gi := merki.IntervalNone
+				gt := merki.TypeAverage
 				if c.Bool("hourly") {
-					gi = intervalHourly
+					gi = merki.IntervalHourly
 				}
 				if c.Bool("daily") {
-					gi = intervalDaily
+					gi = merki.IntervalDaily
 				}
 				if c.Bool("weekly") {
-					gi = intervalWeekly
+					gi = merki.IntervalWeekly
 				}
 				if c.Bool("total") {
-					gi = intervalTotal
+					gi = merki.IntervalTotal
 				}
 				if c.Bool("average") {
-					gt = typeAverage
+					gt = merki.TypeAverage
 				}
 				if c.Bool("max") {
-					gt = typeMax
+					gt = merki.TypeMax
 				}
 				if c.Bool("min") {
-					gt = typeMin
+					gt = merki.TypeMin
 				}
 				if c.Bool("sum") {
-					gt = typeSum
+					gt = merki.TypeSum
 				}
 				return withReader(fileName, func(r io.Reader) error {
-					return merki.Filter(r, measure, gi, gt)
+					return m.Filter(r, measure, gi, gt)
 				})
 			},
 		},
@@ -193,18 +194,18 @@ func main() {
 			},
 			Action: func(c *cli.Context) error {
 				measure := c.Args().First()
-				round := roundSeconds
+				round := merki.RoundSeconds
 				if c.Bool("minutes") {
-					round = roundMinutes
+					round = merki.RoundMinutes
 				}
 				if c.Bool("hours") {
-					round = roundHours
+					round = merki.RoundHours
 				}
 				if c.Bool("days") {
-					round = roundDays
+					round = merki.RoundDays
 				}
 				return withReader(fileName, func(r io.Reader) error {
-					return merki.Interval(r, measure, round)
+					return m.Interval(r, measure, round)
 				})
 			},
 		},
@@ -214,7 +215,7 @@ func main() {
 			Usage:   "Show the latest values for all measurements",
 			Action: func(c *cli.Context) error {
 				return withReader(fileName, func(r io.Reader) error {
-					return merki.Latest(r)
+					return m.Latest(r)
 				})
 			},
 		},

@@ -1,4 +1,4 @@
-package main
+package merki
 
 import (
 	"encoding/csv"
@@ -10,22 +10,22 @@ type GroupingType int
 type RoundType int
 
 const (
-	intervalNone GroupingInterval = iota
-	intervalHourly
-	intervalDaily
-	intervalWeekly
-	intervalTotal
+	IntervalNone GroupingInterval = iota
+	IntervalHourly
+	IntervalDaily
+	IntervalWeekly
+	IntervalTotal
 
-	typeFirst GroupingType = iota
-	typeAverage
-	typeMax
-	typeMin
-	typeSum
+	TypeFirst GroupingType = iota
+	TypeAverage
+	TypeMax
+	TypeMin
+	TypeSum
 
-	roundSeconds RoundType = iota
-	roundMinutes
-	roundHours
-	roundDays
+	RoundSeconds RoundType = iota
+	RoundMinutes
+	RoundHours
+	RoundDays
 )
 
 type Filter struct {
@@ -45,14 +45,14 @@ func (f *Filter) Add(r *Record) error {
 	key := ""
 	if r.Measurement == f.measure {
 		switch f.gi {
-		case intervalHourly:
+		case IntervalHourly:
 			key = r.Date.Format("2006-01-02 15")
-		case intervalDaily:
+		case IntervalDaily:
 			key = r.Date.Format("2006-01-02")
-		case intervalWeekly:
+		case IntervalWeekly:
 			year, week := r.Date.ISOWeek()
 			key = fmt.Sprintf("%02d-%02d", year, week)
-		case intervalTotal:
+		case IntervalTotal:
 			key = "total"
 		}
 		if key == "" {

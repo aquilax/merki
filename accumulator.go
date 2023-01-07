@@ -1,4 +1,4 @@
-package main
+package merki
 
 import (
 	"encoding/csv"
@@ -42,13 +42,13 @@ func (a *Accumulator) calc(records []*Record, gt GroupingType) float64 {
 		values = append(values, r.Value)
 	}
 	switch gt {
-	case typeMax:
+	case TypeMax:
 		return max(values)
-	case typeMin:
+	case TypeMin:
 		return min(values)
-	case typeSum:
+	case TypeSum:
 		return sum(values)
-	case typeAverage:
+	case TypeAverage:
 		return average(values)
 	}
 	if len(values) > 0 {
