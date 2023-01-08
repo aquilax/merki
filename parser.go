@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"encoding/csv"
 	"io"
-	"os"
 	"strings"
 )
 
@@ -24,17 +23,7 @@ func NewParser(delimiter string) *Parser {
 	}
 }
 
-func (p *Parser) ParseFile(fileName string) {
-	f, err := os.Open(fileName)
-	if err != nil {
-		p.Error <- err
-		return
-	}
-	defer f.Close()
-	p.ParseStream(f)
-}
-
-func (p *Parser) ParseStream(reader io.Reader) {
+func (p *Parser) Parse(reader io.Reader) {
 	lineNumber := 0
 	lineScanner := bufio.NewScanner(reader)
 	for lineScanner.Scan() {
@@ -53,16 +42,7 @@ func (p *Parser) ParseStream(reader io.Reader) {
 
 type ParserCallback func(r *Record, err error) (bool, error)
 
-func ParseFileCallback(fileName string, delimiter rune, cb ParserCallback) error {
-	f, err := os.Open(fileName)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	return ParseStreamCallback(f, delimiter, cb)
-}
-
-func ParseStreamCallback(reader io.Reader, delimiter rune, cb ParserCallback) error {
+func ParseCallback(reader io.Reader, delimiter rune, cb ParserCallback) error {
 	lineNumber := 0
 	r := csv.NewReader(reader)
 	r.Comma = delimiter

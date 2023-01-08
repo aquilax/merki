@@ -32,7 +32,7 @@ func (m *Merki) AddRecord(w io.Writer, record *Record) error {
 
 func getMeasureValues(r io.Reader, delimiter rune, measure string) ([]float64, error) {
 	var values []float64
-	err := ParseStreamCallback(r, delimiter, func(record *Record, err error) (bool, error) {
+	err := ParseCallback(r, delimiter, func(record *Record, err error) (bool, error) {
 		if err != nil {
 			return true, err
 		}
@@ -63,7 +63,7 @@ func (m *Merki) DrawSparkLine(r io.Reader, measure string) (string, error) {
 
 func (m *Merki) Measurements(r io.Reader) error {
 	measures := make(map[string]bool)
-	err := ParseStreamCallback(r, m.delimiter, func(record *Record, err error) (bool, error) {
+	err := ParseCallback(r, m.delimiter, func(record *Record, err error) (bool, error) {
 		if err != nil {
 			return true, err
 		}
@@ -86,7 +86,7 @@ func (m *Merki) Latest(r io.Reader) error {
 	w.Comma = m.delimiter
 	list := make(map[string]*Record)
 	var ss sort.StringSlice
-	err := ParseStreamCallback(r, m.delimiter, func(record *Record, err error) (bool, error) {
+	err := ParseCallback(r, m.delimiter, func(record *Record, err error) (bool, error) {
 		if err != nil {
 			return true, err
 		}
@@ -117,8 +117,8 @@ func (m *Merki) Latest(r io.Reader) error {
 func (m *Merki) Filter(r io.Reader, measure string, gi GroupingInterval, gt GroupingType) error {
 	w := csv.NewWriter(m.output)
 	w.Comma = m.delimiter
-	filter := NewFilter(w, measure, gi, gt)
-	err := ParseStreamCallback(r, m.delimiter, func(record *Record, err error) (bool, error) {
+	filter := newFilter(w, measure, gi, gt)
+	err := ParseCallback(r, m.delimiter, func(record *Record, err error) (bool, error) {
 		if err != nil {
 			return true, err
 		}
@@ -130,7 +130,7 @@ func (m *Merki) Filter(r io.Reader, measure string, gi GroupingInterval, gt Grou
 	if err != nil {
 		return err
 	}
-	if err = filter.Print(); err != nil {
+	if err = filter.print(); err != nil {
 		return err
 	}
 	w.Flush()
@@ -158,7 +158,7 @@ func (m *Merki) Interval(r io.Reader, measure string, round RoundType) error {
 	var duration time.Duration
 	var lastRecord *Record
 
-	err := ParseStreamCallback(r, m.delimiter, func(record *Record, err error) (bool, error) {
+	err := ParseCallback(r, m.delimiter, func(record *Record, err error) (bool, error) {
 		if err != nil {
 			return true, err
 		}

@@ -28,20 +28,20 @@ const (
 	RoundDays
 )
 
-type Filter struct {
+type filter struct {
 	w       *csv.Writer
 	measure string
 	gi      GroupingInterval
 	gt      GroupingType
-	a       *Accumulator
+	a       *accumulator
 }
 
-func NewFilter(w *csv.Writer, measure string, gi GroupingInterval, gt GroupingType) *Filter {
-	a := make(Accumulator)
-	return &Filter{w, measure, gi, gt, &a}
+func newFilter(w *csv.Writer, measure string, gi GroupingInterval, gt GroupingType) *filter {
+	a := make(accumulator)
+	return &filter{w, measure, gi, gt, &a}
 }
 
-func (f *Filter) Add(r *Record) error {
+func (f *filter) Add(r *Record) error {
 	key := ""
 	if r.Measurement == f.measure {
 		switch f.gi {
@@ -61,11 +61,11 @@ func (f *Filter) Add(r *Record) error {
 			}
 			return nil
 		}
-		f.a.Add(key, r)
+		f.a.add(key, r)
 	}
 	return nil
 }
 
-func (f *Filter) Print() error {
-	return f.a.Print(f.w, f.gt)
+func (f *filter) print() error {
+	return f.a.print(f.w, f.gt)
 }
