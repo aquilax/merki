@@ -54,7 +54,6 @@ func main() {
 				return withWriter(fileName, func(w io.Writer) error {
 					return m.AddRecord(w, record)
 				})
-
 			},
 		},
 		{
