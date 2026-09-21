@@ -141,11 +141,23 @@ func main() {
 					Aliases: []string{"s"},
 					Usage:   "Sum values in the group",
 				},
+				&cli.StringFlag{
+					Name:    "begin",
+					Aliases: []string{"b"},
+					Usage:   "Start date (inclusive in YYYY-MM-DD format)",
+				},
+				&cli.StringFlag{
+					Name:    "end",
+					Aliases: []string{"e"},
+					Usage:   "End date (exclusive in YYYY-MM-DD format)",
+				},
 			},
 			Action: func(c *cli.Context) error {
 				measure := c.Args().First()
 				gi := merki.IntervalNone
 				gt := merki.TypeAverage
+				filters := make([]merki.FilterFunc, 0)
+
 				if c.Bool("hourly") {
 					gi = merki.IntervalHourly
 				}
@@ -170,8 +182,29 @@ func main() {
 				if c.Bool("sum") {
 					gt = merki.TypeSum
 				}
+				if c.String("begin") != "" {
+					begin, err := time.Parse("2006-01-02", c.String("begin"))
+					if err != nil {
+						return err
+					}
+					filters = append(filters, func(r *merki.Record) (bool, error) {
+						d := time.Date(r.Date.Year(), r.Date.Month(), r.Date.Day(), 0, 0, 0, 0, time.UTC)
+						return d.After(begin) || d.Equal(begin), nil
+					})
+				}
+				if c.String("end") != "" {
+					end, err := time.Parse("2006-01-02", c.String("end"))
+					if err != nil {
+						return err
+					}
+					filters = append(filters, func(r *merki.Record) (bool, error) {
+						d := time.Date(r.Date.Year(), r.Date.Month(), r.Date.Day(), 0, 0, 0, 0, time.UTC)
+						return d.Before(end), nil
+					})
+				}
+
 				return withReader(fileName, func(r io.Reader) error {
-					return m.Filter(r, measure, gi, gt)
+					return m.Filter(r, measure, gi, gt, filters)
 				})
 			},
 		},

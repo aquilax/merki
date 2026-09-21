@@ -3,6 +3,8 @@ package merki
 import (
 	"bufio"
 	"encoding/csv"
+	"errors"
+	"fmt"
 	"io"
 	"strings"
 )
@@ -32,7 +34,7 @@ func (p *Parser) Parse(reader io.Reader) {
 		segments := strings.Split(line, p.delimiter)
 		record, err := NewRecordFromStrings(segments)
 		if err != nil {
-			p.Error <- err
+			p.Error <- errors.Join(fmt.Errorf("line: %d", lineNumber), err)
 			continue
 		}
 		p.Record <- record
@@ -59,7 +61,7 @@ func ParseCallback(reader io.Reader, delimiter rune, cb ParserCallback) error {
 			}
 		}
 		if stop, cbErr := cb(NewRecordFromStrings(record)); stop {
-			return cbErr
+			return errors.Join(fmt.Errorf("line: %d", lineNumber), cbErr)
 		}
 	}
 	return nil
