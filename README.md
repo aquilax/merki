@@ -16,7 +16,7 @@ COMMANDS:
    sparkline, spark   Draw sparkline graph for a measure
    asciigraph, graph  Draw ascii graph for a measure
    measurements, m    Return list of all used measurements
-   filter, f          Filter records for single measurement
+   filter, f          Filter records for one or more measurements
    interval, i        Shows the interval between two measurement events
    latest, l          Show the latest values for all measurements
    help, h            Shows a list of commands or help for one command

@@ -114,10 +114,10 @@ func (m *Merki) Latest(r io.Reader) error {
 	return w.Error()
 }
 
-func (m *Merki) Filter(r io.Reader, measure string, gi GroupingInterval, gt GroupingType, ff []FilterFunc) error {
+func (m *Merki) Filter(r io.Reader, measures []string, gi GroupingInterval, gt GroupingType, ff []FilterFunc) error {
 	w := csv.NewWriter(m.output)
 	w.Comma = m.delimiter
-	filter := newFilter(w, measure, gi, gt, ff)
+	filter := newFilter(w, measures, gi, gt, ff)
 	err := ParseCallback(r, m.delimiter, func(record *Record, err error) (bool, error) {
 		if err != nil {
 			return true, err

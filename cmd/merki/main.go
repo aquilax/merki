@@ -99,7 +99,7 @@ func main() {
 		{
 			Name:    "filter",
 			Aliases: []string{"f"},
-			Usage:   "Filter records for single measurement",
+			Usage:   "Filter records for one or more measurements",
 			Flags: []cli.Flag{
 				&cli.BoolFlag{
 					Name:    "hourly",
@@ -153,7 +153,7 @@ func main() {
 				},
 			},
 			Action: func(c *cli.Context) error {
-				measure := c.Args().First()
+				measures := c.Args().Slice()
 				gi := merki.IntervalNone
 				gt := merki.TypeAverage
 				filters := make([]merki.FilterFunc, 0)
@@ -204,7 +204,7 @@ func main() {
 				}
 
 				return withReader(fileName, func(r io.Reader) error {
-					return m.Filter(r, measure, gi, gt, filters)
+					return m.Filter(r, measures, gi, gt, filters)
 				})
 			},
 		},
