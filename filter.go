@@ -31,17 +31,21 @@ const (
 type FilterFunc func(r *Record) (bool, error)
 
 type filter struct {
-	w       *csv.Writer
-	measure string
-	gi      GroupingInterval
-	gt      GroupingType
-	a       *accumulator
-	ff      []FilterFunc
+	w        *csv.Writer
+	measures map[string]struct{}
+	gi       GroupingInterval
+	gt       GroupingType
+	a        *accumulator
+	ff       []FilterFunc
 }
 
-func newFilter(w *csv.Writer, measure string, gi GroupingInterval, gt GroupingType, ff []FilterFunc) *filter {
+func newFilter(w *csv.Writer, measures []string, gi GroupingInterval, gt GroupingType, ff []FilterFunc) *filter {
+	selected := make(map[string]struct{}, len(measures))
+	for _, measure := range measures {
+		selected[measure] = struct{}{}
+	}
 	a := make(accumulator)
-	return &filter{w, measure, gi, gt, &a, ff}
+	return &filter{w, selected, gi, gt, &a, ff}
 }
 
 func (f *filter) Add(r *Record) error {
@@ -54,7 +58,7 @@ func (f *filter) Add(r *Record) error {
 	}
 
 	key := ""
-	if r.Measurement == f.measure {
+	if _, ok := f.measures[r.Measurement]; ok {
 		switch f.gi {
 		case IntervalHourly:
 			key = r.Date.Format("2006-01-02 15")
@@ -72,7 +76,7 @@ func (f *filter) Add(r *Record) error {
 			}
 			return nil
 		}
-		f.a.add(key, r)
+		f.a.add(accumulatorKey{period: key, measurement: r.Measurement}, r)
 	}
 	return nil
 }

@@ -7,26 +7,36 @@ import (
 	"sort"
 )
 
-// accumulator collects records by string key
-type accumulator map[string][]*Record
+type accumulatorKey struct {
+	period      string
+	measurement string
+}
+
+// accumulator collects records by period and measurement.
+type accumulator map[accumulatorKey][]*Record
 
 // Add adds record to the accumulator
-func (a *accumulator) add(key string, r *Record) {
+func (a *accumulator) add(key accumulatorKey, r *Record) {
 	(*a)[key] = append((*a)[key], r)
 }
 
 // Print accumulator to the writer
 func (a *accumulator) print(w *csv.Writer, gt GroupingType) error {
-	var ss sort.StringSlice
+	var keys []accumulatorKey
 	for key := range *a {
-		ss = append(ss, key)
+		keys = append(keys, key)
 	}
-	ss.Sort()
-	for _, key := range ss {
+	sort.Slice(keys, func(i, j int) bool {
+		if keys[i].period == keys[j].period {
+			return keys[i].measurement < keys[j].measurement
+		}
+		return keys[i].period < keys[j].period
+	})
+	for _, key := range keys {
 		records := (*a)[key]
 		s := []string{
-			key,
-			records[0].Measurement,
+			key.period,
+			key.measurement,
 			fmt.Sprintf(formatFloat, a.calc(records, gt)),
 		}
 		if err := w.Write(s); err != nil {
